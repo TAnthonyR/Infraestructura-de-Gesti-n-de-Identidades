@@ -1,0 +1,20 @@
+# DNS como deberia estar
+
+; BIND data file for areinoso.com
+$TTL    604800
+@       IN      SOA     Anthony.areinoso.com. root.areinoso.com. (
+                              2         ; Serial
+                         604800         ; Refresh
+                          86400         ; Retry
+                        2419200         ; Expire
+                         604800 )       ; Negative Cache TTL
+;
+@       IN      NS      Anthony.areinoso.com.
+@       IN      A       <IP_DEL_SERVIDOR>
+Anthony IN      A       <IP_DEL_SERVIDOR>
+krb5    IN      A       <IP_DEL_SERVIDOR>
+
+; Registros de Servicio (SRV) - Críticos para Kerberos y LDAP
+_kerberos._udp  IN      SRV     0 0 88 krb5.areinoso.com.
+_kerberos._tcp  IN      SRV     0 0 88 krb5.areinoso.com.
+_ldap._tcp      IN      SRV     0 0 389 Anthony.areinoso.com.
