@@ -1,0 +1,23 @@
+# Estructura Base
+dn: ou=sic,dc=areinoso,dc=com
+objectClass: organizationalUnit
+ou: sic
+
+# Grupo Estudiantes (GID 7000)
+dn: cn=estudiantes,ou=sic,dc=areinoso,dc=com
+objectClass: posixGroup
+gidNumber: 7000
+cn: estudiantes
+
+# Usuario Jhoann Rueda (UID 20002)
+dn: uid=jrueda,ou=sic,dc=areinoso,dc=com
+objectClass: inetOrgPerson
+objectClass: posixAccount
+cn: Jhoann Rueda
+sn: Rueda
+uid: jrueda
+uidNumber: 20002
+gidNumber: 7000
+homeDirectory: /home/jrueda
+loginShell: /bin/bash
+userPassword: {SSHA}dummy
