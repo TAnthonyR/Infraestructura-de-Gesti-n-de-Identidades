@@ -1,4 +1,4 @@
-# Configuración de SSSD para integración con LDAP y Kerberos
+# Ejemplo de configuración de SSSD para integración con LDAP y Kerberos
 
 [sssd]
 services = nss, pam
