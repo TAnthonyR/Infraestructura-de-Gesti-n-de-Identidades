@@ -1,10 +1,6 @@
-# Proyecto 2: Infraestructura de Gestión de Identidades (IdM)
+# Proyecto 2: Infraestructura de Gestión de Identidades 
 
-**Estudiante:** Anthony Reinoso  
-**Materia:** Fundamentos de Infraestructura  
-**Estado:** Finalizado / Funcional
-
-## 📋 Descripción
+## Descripción
 Este proyecto implementa un prototipo de **Servicio de Directorio y Autenticación Centralizada** bajo el dominio `areinoso.com`. El sistema integra múltiples servicios Open Source para proporcionar una infraestructura segura donde los usuarios pueden autenticarse en diferentes nodos utilizando una única identidad (Single Sign-On).
 
 ### Arquitectura de Servicios
@@ -17,73 +13,120 @@ El sistema orquesta los siguientes componentes:
 
 ---
 
-## 🚀 Instrucciones de Instalación
+## Instrucciones de Instalación
 
-### Prerrequisitos
-* Sistema Operativo: Ubuntu 20.04 / 22.04 LTS (WSL o Máquina Virtual).
-* Privilegios de `root` o `sudo`.
+Instalación de Infraestructura
+Se utiliza el script `ReinosoA-Proyecto2.sh` para instalar paquetes base y configurar la red (DNS, NTP, Hosts).
 
-### Despliegue Automatizado
-Se ha incluido un script `bash` que automatiza la instalación de paquetes, configuración de archivos y carga inicial de datos.
-
-1.  **Clonar el repositorio:**
-    ```bash
-    git clone [https://github.com/TAnthonyR/Profesionalismo.git](https://github.com/TAnthonyR/Profesionalismo.git)
-    cd Profesionalismo
-    ```
-
-2.  **Dar permisos de ejecución:**
+1.  **Ejecutar el instalador:**
     ```bash
     chmod +x ReinosoA-Proyecto2.sh
-    ```
-
-3.  **Ejecutar el instalador:**
-    ```bash
     sudo ./ReinosoA-Proyecto2.sh
     ```
-    *El script detectará automáticamente si los paquetes ya están instalados. Si es la primera vez, instalará y configurará todo el entorno.*
+    *El script mostrará en pantalla el progreso de la instalación de los paquetes.*
+
+---
+## Configuración y Uso
+
+Para asegurar que los servicios base se inicialicen correctamente, realice estos pasos manuales una única vez:
+
+### A. Inicializar LDAP (slapd)
+Este paso crea la estructura raíz del directorio.
+1.  Ejecuta: `sudo dpkg-reconfigure slapd`
+2.  Configuración aplicada:
+    * ¿Omitir la configuración del servidor?: **No**
+    * Nombre del dominio DNS: **areinoso.com**
+    * Nombre de la organización: **FIS**
+    * Contraseña de administrador: **cd2025**
+    * ¿Borrar la base de datos al purgar?: **No**
+    * ¿Mover la base de datos antigua?: **Sí**
+
+### B. Inicializar Kerberos
+Este paso crea la base de datos de autenticación.
+1.  Ejecuta: `sudo krb5_newrealm`
+2.  Contraseña maestra KDC: **cd2025**
 
 ---
 
-## ⚙️ Configuración y Uso
+## Habilitar SSO en SSH (GSSAPI)
+**IMPORTANTE:** Habilita la autenticación por tickets en el servicio SSH.
 
-Una vez finalizada la ejecución del script, el sistema estará operativo. A continuación se detallan los pasos para administrar y validar el servicio.
-
-### 1. Gestión de Usuarios (LDAP + Kerberos)
-El script crea automáticamente un usuario de prueba: **`jrueda`**.
-
-Para agregar nuevos usuarios manualmente:
-1.  Crear el usuario en LDAP (archivo `.ldif`):
+1.  **Instalar el servidor SSH:**
     ```bash
-    ldapadd -x -D "cn=admin,dc=areinoso,dc=com" -W -f nuevo_usuario.ldif
-    ```
-2.  Registrar el principal en Kerberos:
-    ```bash
-    sudo kadmin.local -q "addprinc nuevo_usuario"
+    sudo apt-get install openssh-server -y
     ```
 
-### 2. Validación del Servicio
+2.  **Activar GSSAPI (Copiar y pegar en terminal):**
+    ```bash
+    # 1. Configurar Servidor (Aceptar tickets)
+    sudo sed -i 's/#GSSAPIAuthentication no/GSSAPIAuthentication yes/g' /etc/ssh/sshd_config
+    sudo sed -i 's/GSSAPIAuthentication no/GSSAPIAuthentication yes/g' /etc/ssh/sshd_config
+    echo "GSSAPICleanupCredentials yes" | sudo tee -a /etc/ssh/sshd_config
+
+    # 2. Configurar Cliente (Enviar tickets)
+    sudo sed -i 's/#   GSSAPIAuthentication no/    GSSAPIAuthentication yes/g' /etc/ssh/ssh_config
+    echo "    GSSAPIDelegateCredentials yes" | sudo tee -a /etc/ssh/ssh_config
+
+    # 3. Reiniciar servicio
+    sudo systemctl restart ssh
+    ```
+
+---
+## Creación de Usuarios y Datos
+
+### 1. Poblar el Directorio (LDAP)
+Cargar el archivo `.ldif` incluido en la carpeta `data/`.
+```bash
+# Password: cd2025
+ldapadd -x -D "cn=admin,dc=areinoso,dc=com" -W -f data/base_datos.ldif
+```
+### 2. Registrar Principales (Kerberos)
+Entrar a la consola de administración: `sudo kadmin.local`.
+
+Dentro ejecutamos lo siguiente:
+```bash
+# 1. Crear usuario jrueda
+addprinc areinoso
+
+# 2. Crear y exportar la llave del servidor
+addprinc -randkey host/krb5.areinoso.com
+ktadd host/krb5.areinoso.com
+
+# 3. Salir
+quit
+```
+### 3. Cambio de hostname 
+
+Una vez terminada la configuracion realizar el cambio del hostname de la maquina con el siguiente comando:
+```bash
+sudo hostname krb5.areinoso.com
+```
+
+### 4. Validación del Servicio
 Para verificar que la infraestructura funciona correctamente:
 
 * **Prueba de Directorio (LDAP):**
     Comprobar si el sistema reconoce al usuario remoto.
     ```bash
-    getent passwd jrueda
-    # Salida esperada: jrueda:*:20002:7000:Jhoann Rueda:/home/jrueda:/bin/bash
+    getent passwd areinoso
+    # Salida esperada: (cambiar)jrueda:*:20002:7000:Jhoann Rueda:/home/jrueda:/bin/bash
     ```
 
 * **Prueba de Autenticación (Kerberos):**
     Obtener un ticket manual.
     ```bash
-    kinit jrueda
+    kinit areinoso
     klist
-    # Salida esperada: Default principal: jrueda@AREINOSO.COM
+    # Salida esperada: Default principal: areinoso@AREINOSO.COM
     ```
 
 * **Prueba de Single Sign-On (SSH):**
-    Conectarse al servidor usando el nombre canónico (FQDN). No debería pedir contraseña si ya existe un ticket válido.
+    Para verificar la autenticación sin contraseña (Kerberos), el procedimiento varía según el cliente:
+
+    **A. Desde Linux / WSL (Interno)**
     ```bash
-    ssh jrueda@krb5.areinoso.com
+    # Debe ingresar automáticamente si tiene ticket (kinit)
+    ssh areinoso@krb5.areinoso.com
     ```
 
 ---
@@ -94,8 +137,7 @@ Los siguientes archivos son modificados automáticamente por el script, pero se 
 * `/etc/hosts`: Mapeo estático para resolución canónica del KDC.
 * `/etc/bind/db.areinoso.com`: Zona DNS con registros SRV (`_kerberos`, `_ldap`).
 * `/etc/sssd/sssd.conf`: Configuración del cliente para usar LDAP como proveedor de ID y Kerberos como proveedor de Auth.
-* `/etc/krb5.conf`: Definición del Realm `AREINOSO.COM`.
 
 ## ⚠️ Solución de Problemas Comunes
-* **Error "Name or service not known" en SSH:** Verificar que `/etc/hosts` tenga la IP correcta apuntando a `krb5.areinoso.com`.
+
 * **Error de Reloj (Clock Skew):** Kerberos falla si la hora difiere más de 5 minutos. Ejecutar `sudo chronyc makestep` para forzar la sincronización.
