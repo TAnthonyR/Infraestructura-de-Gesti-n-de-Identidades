@@ -109,7 +109,7 @@ Para verificar que la infraestructura funciona correctamente:
     Comprobar si el sistema reconoce al usuario remoto.
     ```bash
     getent passwd areinoso
-    # Salida esperada: (cambiar)jrueda:*:20002:7000:Jhoann Rueda:/home/jrueda:/bin/bash
+    # Salida esperada: (cambiar)areinoso:*:20002:7000:Anthony Reinoso:/home/areinoso:/bin/bash
     ```
 
 * **Prueba de Autenticación (Kerberos):**
