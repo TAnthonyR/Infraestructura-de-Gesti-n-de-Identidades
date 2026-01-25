@@ -22,6 +22,8 @@ Se utiliza el script `ReinosoA-Proyecto2.sh` para instalar paquetes base y confi
     ```bash
     chmod +x ReinosoA-Proyecto2.sh
     sudo ./ReinosoA-Proyecto2.sh
+    o
+    sudo bash ReinosoA-Proyecto2.sh
     ```
     *El script mostrará en pantalla el progreso de la instalación de los paquetes.*
 
