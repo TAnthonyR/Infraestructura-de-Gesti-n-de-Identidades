@@ -1,10 +1,4 @@
 #!/bin/bash
-
-# ====================================================
-# PROYECTO 2: Instalador de Infraestructura Base
-# Estudiante: Anthony Reinoso
-# ====================================================
-
 # --- VARIABLES ---
 DOMINIO="areinoso.com"
 REALM="AREINOSO.COM"
@@ -28,18 +22,15 @@ echo -e "IP:   ${AMARILLO}$IP_SVR${NC}"
 
 # 1. ACTUALIZAR E INSTALAR
 echo -e "\n${AZUL}[1/4] Actualizando lista de paquetes...${NC}"
-# Se quitó "> /dev/null" para que veas el proceso
 sudo apt-get update
 
 echo -e "\n${AZUL}[INFO] Configurando respuestas automáticas para Kerberos...${NC}"
-# Pre-configuración para evitar preguntas bloqueantes (esto sigue oculto para no estorbar)
 export DEBIAN_FRONTEND=noninteractive
 echo "krb5-config krb5-config/default_realm string $REALM" | sudo debconf-set-selections
 echo "krb5-config krb5-config/kerberos_servers string $HOSTNAME_SVR.$DOMINIO" | sudo debconf-set-selections
 echo "krb5-config krb5-config/admin_server string $HOSTNAME_SVR.$DOMINIO" | sudo debconf-set-selections
 
 echo -e "\n${AZUL}>>> INSTALANDO PAQUETES (BIND9, LDAP, KRB5, SSSD) <<<${NC}"
-# AQUÍ ESTÁ EL CAMBIO: Se eliminó el silencio. Ahora verás todo el proceso.
 sudo apt-get install -y bind9 bind9utils bind9-doc chrony slapd ldap-utils krb5-kdc krb5-admin-server sssd-ldap sssd-krb5 sssd-tools libpam-sss libnss-sss
 
 echo -e "${VERDE}✔ Paquetes instalados correctamente.${NC}"
@@ -48,7 +39,6 @@ echo -e "${VERDE}✔ Paquetes instalados correctamente.${NC}"
 echo -e "\n${AZUL}[2/4] Configurando /etc/hosts...${NC}"
 # Eliminamos configuración vieja si existe
 sudo sed -i "/$DOMINIO/d" /etc/hosts
-# Agregamos la linea correcta
 echo "$IP_SVR krb5.$DOMINIO $HOSTNAME_SVR.$DOMINIO $DOMINIO $HOSTNAME_SVR" | sudo tee -a /etc/hosts
 echo -e "${VERDE}✔ Hosts actualizado.${NC}"
 
