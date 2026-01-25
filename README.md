@@ -58,16 +58,16 @@ Este paso crea la base de datos de autenticación.
 
 2.  **Activar GSSAPI (Copiar y pegar en terminal):**
     ```bash
-    # 1. Configurar Servidor (Aceptar tickets)
+    # Configurar Servidor (Aceptar tickets)
     sudo sed -i 's/#GSSAPIAuthentication no/GSSAPIAuthentication yes/g' /etc/ssh/sshd_config
     sudo sed -i 's/GSSAPIAuthentication no/GSSAPIAuthentication yes/g' /etc/ssh/sshd_config
     echo "GSSAPICleanupCredentials yes" | sudo tee -a /etc/ssh/sshd_config
 
-    # 2. Configurar Cliente (Enviar tickets)
+    # Configurar Cliente (Enviar tickets)
     sudo sed -i 's/#   GSSAPIAuthentication no/    GSSAPIAuthentication yes/g' /etc/ssh/ssh_config
     echo "    GSSAPIDelegateCredentials yes" | sudo tee -a /etc/ssh/ssh_config
 
-    # 3. Reiniciar servicio
+    # Reiniciar servicio
     sudo systemctl restart ssh
     ```
 
@@ -85,14 +85,14 @@ Entrar a la consola de administración: `sudo kadmin.local`.
 
 Dentro ejecutamos lo siguiente:
 ```bash
-# 1. Crear usuario jrueda
+# Crear usuario areinoso
 addprinc areinoso
 
-# 2. Crear y exportar la llave del servidor
+# Crear y exportar la llave del servidor
 addprinc -randkey host/krb5.areinoso.com
 ktadd host/krb5.areinoso.com
 
-# 3. Salir
+# Salir
 quit
 ```
 ### 3. Cambio de hostname 
